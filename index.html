@@ -1,5 +1,10 @@
 <!doctype html>
-<title>MarktKompass</title>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MarktKompass – Börsenkurse einfach verstehen & live verfolgen</title>
+<meta name="description" content="Kostenloser Marktüberblick: Live-Bitcoin-Ticker alle 5 Minuten, Börsenampel für NYSE, Xetra, Tokio & Hongkong, verständlich erklärt wie Kurse funktionieren, plus Direktlinks zu S&P 500, DAX, Aktien, Devisen & Rohstoffen. Kein Depot, kein Kauf-Button.">
 <style>
   :root {
     --bg: #f5f6f8;
@@ -90,6 +95,12 @@
   h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.01em; }
   .sub { color: var(--muted); font-size: 13px; margin: 0; }
 
+  .legend-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 0; }
+  .legend-item { font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border); }
+  .legend-item.up { color: var(--open); background: var(--open-bg); border-color: transparent; }
+  .legend-item.down { color: var(--closed); background: var(--closed-bg); border-color: transparent; }
+  .legend-item.flat { color: var(--muted); }
+
   h2.section-title {
     font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
     color: var(--muted); margin: 0 0 10px; scroll-margin-top: 64px;
@@ -97,20 +108,43 @@
   }
   section { margin: 26px 0; }
 
-  .status-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 10px;
+  .learn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+  .learn-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+  .learn-num {
+    width: 24px; height: 24px; border-radius: 50%; background: var(--accent-bg); color: var(--accent);
+    font-weight: 800; font-size: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;
   }
-  .status-pill {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  .learn-title { font-weight: 700; font-size: 13.5px; margin-bottom: 4px; }
+  .learn-text { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+  .learn-text a { color: var(--accent); }
+  .mini-badge { display: inline-flex; padding: 2px 7px; border-radius: 999px; font-weight: 700; font-size: 12px; }
+  .mini-badge.up { color: var(--open); background: var(--open-bg); }
+  .mini-badge.down { color: var(--closed); background: var(--closed-bg); }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 6px;
+    padding: 6px 12px; border-radius: 999px; font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums;
   }
+  .badge.up { color: var(--open); background: var(--open-bg); }
+  .badge.down { color: var(--closed); background: var(--closed-bg); }
+  .badge.flat { color: var(--muted); background: var(--border); }
+
+  .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--open); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+
+  .btc-hero { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 18px; }
+  .btc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+  .btc-price { font-size: clamp(28px, 7vw, 40px); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .btc-chart-wrap { position: relative; margin-top: 16px; }
+  #btcSparkline { width: 100%; height: 80px; display: block; touch-action: none; cursor: crosshair; }
+  .btc-tooltip {
+    position: absolute; top: 0; background: var(--text); color: var(--bg); font-size: 11px;
+    padding: 3px 7px; border-radius: 6px; pointer-events: none; transform: translate(-50%, -115%); white-space: nowrap;
+  }
+  .btc-meta { margin-top: 10px; font-size: 12px; color: var(--muted); }
+
+  .status-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  .status-pill { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
   .status-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
   .status-dot.open { background: var(--open); box-shadow: 0 0 0 4px var(--open-bg); }
   .status-dot.closed { background: var(--closed); box-shadow: 0 0 0 4px var(--closed-bg); }
@@ -166,10 +200,6 @@
   }
   .legal-box p { margin: 0 0 10px; }
   .legal-box p:last-child { margin-bottom: 0; }
-  .fill-warning {
-    background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn);
-    border-radius: 12px; padding: 12px 14px; font-size: 13px; margin-bottom: 14px; line-height: 1.5;
-  }
   .placeholder { font-style: italic; }
 
   footer.site-footer {
@@ -178,11 +208,15 @@
   }
   footer.site-footer b { color: var(--text); }
 </style>
+</head>
+<body>
 
 <div class="topbar">
   <div class="topbar-inner">
     <div class="brand">🧭 MarktKompass</div>
     <nav class="navlinks">
+      <a href="#lernen">Lernen</a>
+      <a href="#bitcoin-live">Bitcoin Live</a>
       <a href="#status">Status</a>
       <a href="#favoriten">Favoriten</a>
       <a href="#us">US</a>
@@ -201,9 +235,63 @@
 
 <div class="wrap">
   <header class="hero">
-    <h1>Schneller Marktüberblick</h1>
+    <h1>Börsenkurse einfach verstehen &amp; live verfolgen</h1>
     <p class="sub">Kuratiertes Sprungbrett zu Live-Kursen, Börsenstatus &amp; Finanzwissen &mdash; kein Depot, kein Kauf-Button.</p>
+    <div class="legend-row">
+      <span class="legend-item up">▲ Kurs gestiegen</span>
+      <span class="legend-item down">▼ Kurs gefallen</span>
+      <span class="legend-item flat">→ unverändert</span>
+    </div>
   </header>
+
+  <section id="lernen">
+    <h2 class="section-title">🎓 Kurse verstehen in 60 Sekunden</h2>
+    <div class="learn-grid">
+      <div class="learn-card">
+        <div class="learn-num">1</div>
+        <div class="learn-title">Was ist ein Kurs?</div>
+        <div class="learn-text">Der <b>Kurs</b> ist der Preis, zu dem ein Wertpapier gerade gehandelt wird &mdash; er ändert sich laufend, je nachdem wie viele Käufer und Verkäufer es gerade gibt.</div>
+      </div>
+      <div class="learn-card">
+        <div class="learn-num">2</div>
+        <div class="learn-title">Plus oder Minus?</div>
+        <div class="learn-text"><span class="mini-badge up">▲ +2,3%</span> heißt: seit dem letzten Schlusskurs gestiegen. <span class="mini-badge down">▼ −1,1%</span> heißt: gefallen. Die Prozentzahl zeigt die Veränderung, nicht den absoluten Preis.</div>
+      </div>
+      <div class="learn-card">
+        <div class="learn-num">3</div>
+        <div class="learn-title">Was ist ein Index?</div>
+        <div class="learn-text">Ein <b>Index</b> (z. B. S&amp;P 500) fasst viele Einzelkurse zu einer Zahl zusammen. Steigt der Index, sind im Schnitt mehr Aktien gestiegen als gefallen.</div>
+      </div>
+      <div class="learn-card">
+        <div class="learn-num">4</div>
+        <div class="learn-title">Live selbst ausprobieren</div>
+        <div class="learn-text">Schau dir unten den <a href="#bitcoin-live">Bitcoin-Live-Ticker</a> an: Er aktualisiert sich alle 5 Minuten &mdash; beobachte, wie sich Farbe und Pfeil mit dem Kurs verändern.</div>
+      </div>
+      <div class="learn-card">
+        <div class="learn-num">5</div>
+        <div class="learn-title">Kurse selbst markieren</div>
+        <div class="learn-text">Fahr mit der Maus (oder dem Finger) über den Bitcoin-Chart &mdash; du kannst jeden Punkt einzeln „anpeilen" und den genauen Kurs zu diesem Zeitpunkt ablesen.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="bitcoin-live">
+    <h2 class="section-title"><span class="live-dot" aria-hidden="true"></span> Bitcoin Live-Ticker</h2>
+    <div class="btc-hero">
+      <div class="btc-top">
+        <div>
+          <div class="btc-price" id="btcPrice">Lädt&hellip;</div>
+          <span class="badge flat" id="btcBadge">&ndash;</span>
+        </div>
+        <a class="card-link" href="https://finance.yahoo.com/quote/BTC-USD/" target="_blank" rel="noopener">Live-Chart ↗</a>
+      </div>
+      <div class="btc-chart-wrap">
+        <svg id="btcSparkline" viewBox="0 0 300 80" preserveAspectRatio="none"></svg>
+        <div class="btc-tooltip" id="btcTooltip" hidden></div>
+      </div>
+      <div class="btc-meta" id="btcMeta">Lädt Kursverlauf&hellip;</div>
+    </div>
+  </section>
 
   <section id="status">
     <h2 class="section-title">📡 Börsenstatus (live)</h2>
@@ -255,7 +343,8 @@
   <section id="datenschutz">
     <h2 class="section-title">🔒 Datenschutzerklärung</h2>
     <div class="legal-box">
-      <p><b>Keine Server-Datenverarbeitung.</b> Diese Seite ist rein statisch (HTML/CSS/JavaScript) und sendet keine Daten an einen eigenen Server. Es gibt kein Tracking, keine Analyse-Tools und keine Cookies von dieser Seite selbst.</p>
+      <p><b>Keine eigene Server-Datenverarbeitung.</b> Diese Seite ist rein statisch (HTML/CSS/JavaScript) und sendet selbst keine Daten an einen eigenen Server. Es gibt kein Tracking, keine Analyse-Tools und keine Cookies von dieser Seite selbst.</p>
+      <p><b>Bitcoin-Live-Ticker (CoinGecko).</b> Für den Live-Kurs auf dieser Seite ruft dein Browser automatisch alle 5 Minuten Daten von der öffentlichen Programmierschnittstelle des Anbieters CoinGecko (coingecko.com) ab. Dabei wird technisch bedingt deine IP-Adresse an CoinGecko übertragen (wie bei jedem Seitenaufruf im Internet). Es werden keine weiteren Daten von dieser Seite an CoinGecko übermittelt. Es gilt die Datenschutzerklärung von CoinGecko.</p>
       <p><b>Lokaler Speicher (localStorage).</b> Deine ⭐ Favoriten und die Farbschema-Einstellung werden ausschließlich lokal in deinem eigenen Browser gespeichert (localStorage) und niemals an irgendjemanden übertragen. Du kannst diese Daten jederzeit über die Browser-Einstellungen löschen.</p>
       <p><b>Externe Links.</b> Die „Live-Chart“- und News-Links führen zu Drittanbietern (u. a. Google Finance, Yahoo Finance, Tagesschau, Handelsblatt). Sobald du einen solchen Link anklickst, gilt die Datenschutzerklärung des jeweiligen Anbieters &mdash; darauf hat diese Seite keinen Einfluss.</p>
       <p class="placeholder">[Falls du selbst Werbung, Analyse-Tools oder Cookies einbindest, muss diese Datenschutzerklärung entsprechend ergänzt werden, z. B. um Angaben zu Google AdSense, Consent-Bannern und Widerrufsmöglichkeiten.]</p>
@@ -263,7 +352,7 @@
   </section>
 
   <footer class="site-footer">
-    <div><b>Was ist das hier?</b> Eine kuratierte Sammlung schneller Links zu Live-Kursen &mdash; keine eingebauten Kurszahlen (damit hier nichts veraltet), sondern ein Klick zur jeweils aktuellen Quelle.</div>
+    <div><b>Was ist das hier?</b> Eine kuratierte Sammlung schneller Links zu Live-Kursen plus ein echter Live-Ticker für Bitcoin &mdash; für alle anderen Werte führt ein Klick zur jeweils aktuellen Live-Quelle (dort auch mit eigenen Zeichen-/Markierungswerkzeugen für Charts).</div>
     <div style="margin-top:6px;">Der Börsenstatus wird direkt im Browser aus der Uhrzeit berechnet (ohne Feiertage) &mdash; keine Order-, Kauf- oder Verkaufsfunktion irgendwo auf dieser Seite.</div>
   </footer>
 </div>
@@ -322,7 +411,7 @@
         { id: "gold", name: "Gold", blurb: "Feinunze Gold in US-Dollar, klassischer „sicherer Hafen“.", link: "https://finance.yahoo.com/quote/GC=F/" },
         { id: "silber", name: "Silber", blurb: "Feinunze Silber in US-Dollar, Industrie- und Edelmetall.", link: "https://finance.yahoo.com/quote/SI=F/futures/" },
         { id: "oel", name: "Öl (WTI)", blurb: "US-Rohöl-Future, wichtiger Konjunktur- und Inflationsindikator.", link: "https://finance.yahoo.com/quote/CL=F/" },
-        { id: "bitcoin", name: "Bitcoin", blurb: "Größte Kryptowährung nach Marktkapitalisierung.", link: "https://finance.yahoo.com/quote/BTC-USD/" }
+        { id: "bitcoin", name: "Bitcoin", blurb: "Größte Kryptowährung nach Marktkapitalisierung – live oben im Ticker.", link: "https://finance.yahoo.com/quote/BTC-USD/" }
       ]
     }
   ];
@@ -544,5 +633,96 @@
   }
   renderStatus();
   setInterval(renderStatus, 30000);
+
+  // Bitcoin live ticker (CoinGecko, free public API, no key required)
+  var BTC_PRICE_URL = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true";
+  var BTC_CHART_URL = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=1";
+  var sparklineData = [];
+
+  function fmtUSD(n) {
+    try { return "$" + n.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    catch (e) { return "$" + n.toFixed(2); }
+  }
+
+  function updateBitcoinPrice() {
+    fetch(BTC_PRICE_URL).then(function (r) { return r.json(); }).then(function (data) {
+      var btc = data && data.bitcoin;
+      if (!btc || typeof btc.usd !== "number") throw new Error("no data");
+      var change = btc.usd_24h_change || 0;
+      var dir = change > 0.05 ? "up" : change < -0.05 ? "down" : "flat";
+      var arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "→";
+      document.getElementById("btcPrice").textContent = fmtUSD(btc.usd);
+      var badge = document.getElementById("btcBadge");
+      badge.textContent = arrow + " " + (change > 0 ? "+" : "") + change.toFixed(2) + "% (24h)";
+      badge.className = "badge " + dir;
+      var now = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
+      document.getElementById("btcMeta").textContent = "Stand " + now + " Uhr · aktualisiert automatisch alle 5 Minuten · Daten: CoinGecko";
+    }).catch(function () {
+      document.getElementById("btcPrice").textContent = "Live-Daten gerade nicht erreichbar";
+      var badge = document.getElementById("btcBadge");
+      badge.textContent = "Bitte Live-Chart öffnen";
+      badge.className = "badge flat";
+    });
+  }
+
+  function renderSparkline(prices) {
+    sparklineData = prices;
+    var svg = document.getElementById("btcSparkline");
+    var w = 300, h = 80, pad = 4;
+    var values = prices.map(function (p) { return p[1]; });
+    var min = Math.min.apply(null, values), max = Math.max.apply(null, values);
+    var range = (max - min) || 1;
+    var points = values.map(function (v, i) {
+      var x = pad + (i / (values.length - 1)) * (w - 2 * pad);
+      var y = h - pad - ((v - min) / range) * (h - 2 * pad);
+      return x.toFixed(1) + "," + y.toFixed(1);
+    }).join(" ");
+    var rootStyles = getComputedStyle(document.documentElement);
+    var color = (values[values.length - 1] >= values[0])
+      ? rootStyles.getPropertyValue("--open").trim()
+      : rootStyles.getPropertyValue("--closed").trim();
+    svg.innerHTML = '<polyline points="' + points + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>';
+  }
+
+  function updateBitcoinChart() {
+    fetch(BTC_CHART_URL).then(function (r) { return r.json(); }).then(function (data) {
+      var prices = data && data.prices;
+      if (!prices || !prices.length) throw new Error("no chart");
+      renderSparkline(prices);
+    }).catch(function () {
+      document.getElementById("btcSparkline").innerHTML = "";
+    });
+  }
+
+  // Crosshair "mark a point" tool on the sparkline
+  (function setupCrosshair() {
+    var svg = document.getElementById("btcSparkline");
+    var tooltip = document.getElementById("btcTooltip");
+    function handleMove(clientX) {
+      if (!sparklineData.length) return;
+      var rect = svg.getBoundingClientRect();
+      if (!rect.width) return;
+      var ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+      var idx = Math.round(ratio * (sparklineData.length - 1));
+      var point = sparklineData[idx];
+      if (!point) return;
+      var time = new Date(point[0]).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
+      tooltip.textContent = time + " Uhr · " + fmtUSD(point[1]);
+      tooltip.style.left = (ratio * rect.width) + "px";
+      tooltip.hidden = false;
+    }
+    svg.addEventListener("pointermove", function (e) { handleMove(e.clientX); });
+    svg.addEventListener("pointerleave", function () { tooltip.hidden = true; });
+    svg.addEventListener("touchmove", function (e) { if (e.touches[0]) handleMove(e.touches[0].clientX); }, { passive: true });
+  })();
+
+  function refreshBitcoin() {
+    updateBitcoinPrice();
+    updateBitcoinChart();
+  }
+  refreshBitcoin();
+  setInterval(refreshBitcoin, 300000);
 })();
 </script>
+</body>
+</html>
