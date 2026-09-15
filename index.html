@@ -1,0 +1,548 @@
+<!doctype html>
+<title>MarktKompass</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --border: #e4e7ec;
+    --text: #14171c;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent-bg: #eaf0fe;
+    --open: #0a7d3c;
+    --open-bg: #e7f7ee;
+    --closed: #c0202f;
+    --closed-bg: #fdeceb;
+    --star: #d18a00;
+    --warn: #92400e;
+    --warn-bg: #fef3c7;
+    --warn-border: #fcd34d;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1115;
+      --card: #171a21;
+      --border: #262b35;
+      --text: #eef0f3;
+      --muted: #9aa2af;
+      --accent: #6ea8ff;
+      --accent-bg: #17243d;
+      --open: #33d17a;
+      --open-bg: #10301f;
+      --closed: #ff6b6b;
+      --closed-bg: #3a1416;
+      --star: #f2b153;
+      --warn: #fcd34d;
+      --warn-bg: #3a2a10;
+      --warn-border: #7c5a12;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1115;
+    --card: #171a21;
+    --border: #262b35;
+    --text: #eef0f3;
+    --muted: #9aa2af;
+    --accent: #6ea8ff;
+    --accent-bg: #17243d;
+    --open: #33d17a;
+    --open-bg: #10301f;
+    --closed: #ff6b6b;
+    --closed-bg: #3a1416;
+    --star: #f2b153;
+    --warn: #fcd34d;
+    --warn-bg: #3a2a10;
+    --warn-border: #7c5a12;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 16px 48px; }
+
+  .topbar {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+  }
+  .topbar-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+  .brand { font-weight: 800; font-size: 16px; flex: none; }
+  .navlinks { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; flex: 1; }
+  .navlinks::-webkit-scrollbar { display: none; }
+  .navlinks a {
+    flex: none; font-size: 12.5px; color: var(--muted); text-decoration: none;
+    padding: 6px 10px; border-radius: 999px; white-space: nowrap;
+  }
+  .navlinks a:hover { background: var(--card); color: var(--text); }
+  .theme-btn {
+    flex: none; border: 1px solid var(--border); background: var(--card); color: var(--text);
+    border-radius: 999px; padding: 7px 11px; font-size: 13px; cursor: pointer;
+  }
+
+  header.hero { padding: 20px 0 6px; }
+  h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); font-size: 13px; margin: 0; }
+
+  h2.section-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--muted); margin: 0 0 10px; scroll-margin-top: 64px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  section { margin: 26px 0; }
+
+  .status-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  .status-pill {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .status-dot.open { background: var(--open); box-shadow: 0 0 0 4px var(--open-bg); }
+  .status-dot.closed { background: var(--closed); box-shadow: 0 0 0 4px var(--closed-bg); }
+  .status-text { font-size: 13px; line-height: 1.35; }
+  .status-text b { display: block; font-size: 13.5px; }
+  .status-text span { color: var(--muted); }
+
+  .searchbar { display: flex; gap: 8px; }
+  .searchbar input {
+    flex: 1; min-width: 0; padding: 11px 14px; border-radius: 12px;
+    border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 14px;
+  }
+  .searchbar input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .searchbar button {
+    padding: 11px 16px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--accent); color: #fff; font-weight: 600; font-size: 13.5px; cursor: pointer; white-space: nowrap;
+  }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+  .card-name { font-size: 14.5px; font-weight: 700; }
+  .star-btn { background: none; border: none; cursor: pointer; font-size: 17px; line-height: 1; color: var(--border); padding: 0; }
+  .star-btn.active { color: var(--star); }
+  .card-blurb { font-size: 12.5px; color: var(--muted); line-height: 1.45; flex: 1; }
+  .card-link {
+    align-self: flex-start; font-size: 12.5px; color: var(--accent); text-decoration: none;
+    border: 1px solid var(--border); padding: 6px 11px; border-radius: 999px;
+  }
+  .card-link:hover { text-decoration: underline; }
+
+  #favSection { display: none; }
+
+  .glossary { display: grid; gap: 10px; }
+  .gterm { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+  .gterm dt { font-weight: 700; font-size: 13.5px; margin-bottom: 3px; }
+  .gterm dd { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+  .newslist { display: grid; gap: 8px; }
+  .newslist a {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px; text-decoration: none; color: var(--text); font-size: 13.5px; font-weight: 600;
+  }
+  .newslist a span.arrow { color: var(--accent); font-weight: 700; }
+
+  .legal-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px;
+    font-size: 13.5px; line-height: 1.7; color: var(--text);
+  }
+  .legal-box p { margin: 0 0 10px; }
+  .legal-box p:last-child { margin-bottom: 0; }
+  .fill-warning {
+    background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn);
+    border-radius: 12px; padding: 12px 14px; font-size: 13px; margin-bottom: 14px; line-height: 1.5;
+  }
+  .placeholder { font-style: italic; }
+
+  footer.site-footer {
+    margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 12px; line-height: 1.6;
+  }
+  footer.site-footer b { color: var(--text); }
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">🧭 MarktKompass</div>
+    <nav class="navlinks">
+      <a href="#status">Status</a>
+      <a href="#favoriten">Favoriten</a>
+      <a href="#us">US</a>
+      <a href="#europa">Europa</a>
+      <a href="#asien">Asien</a>
+      <a href="#aktien">Aktien</a>
+      <a href="#devisen">Devisen</a>
+      <a href="#rohstoffe">Rohstoffe</a>
+      <a href="#glossar">Glossar</a>
+      <a href="#news">News</a>
+      <a href="#impressum">Impressum</a>
+    </nav>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Farbschema wechseln">🌓</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="hero">
+    <h1>Schneller Marktüberblick</h1>
+    <p class="sub">Kuratiertes Sprungbrett zu Live-Kursen, Börsenstatus &amp; Finanzwissen &mdash; kein Depot, kein Kauf-Button.</p>
+  </header>
+
+  <section id="status">
+    <h2 class="section-title">📡 Börsenstatus (live)</h2>
+    <div class="status-row" id="statusRow"></div>
+  </section>
+
+  <section id="suche">
+    <h2 class="section-title">🔎 Ticker- / Firmensuche</h2>
+    <div class="searchbar">
+      <input id="searchInput" type="text" placeholder="Ticker oder Firmenname suchen (z. B. Apple, VW, BTC)&hellip;" />
+      <button id="searchBtn" type="button">Suchen ↗</button>
+    </div>
+  </section>
+
+  <section id="favoriten" data-section="favSection">
+    <h2 class="section-title">⭐ Favoriten</h2>
+    <div class="grid" id="favGrid"></div>
+  </section>
+
+  <div id="groups"></div>
+
+  <section id="glossar">
+    <h2 class="section-title">📘 Finanz-Glossar</h2>
+    <dl class="glossary" id="glossaryList"></dl>
+  </section>
+
+  <section id="news">
+    <h2 class="section-title">📰 Wirtschaftsnews</h2>
+    <div class="newslist" id="newsList"></div>
+  </section>
+
+  <section id="impressum">
+    <h2 class="section-title">⚖️ Impressum</h2>
+    <div class="legal-box">
+      <p><b>Angaben gemäß § 5 TMG</b></p>
+      <p>Carl Titus Henssler<br>
+      Natz-Thier-Weg 64<br>
+      48155 Münster<br>
+      Deutschland</p>
+      <p><b>Kontakt</b><br>
+      E-Mail: hensslercarl@gmail.com</p>
+      <p><b>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</b><br>
+      Carl Titus Henssler, Anschrift wie oben</p>
+      <p><b>Haftungsausschluss</b><br>
+      Alle Inhalte dieser Seite dienen ausschließlich der allgemeinen Information und stellen keine Anlageberatung, keine Kauf- oder Verkaufsempfehlung dar. Für die Richtigkeit, Vollständigkeit und Aktualität der über verlinkte Drittseiten abrufbaren Kurse und Angaben wird keine Gewähr übernommen. Für Inhalte externer, verlinkter Webseiten sind ausschließlich deren Betreiber verantwortlich.</p>
+    </div>
+  </section>
+
+  <section id="datenschutz">
+    <h2 class="section-title">🔒 Datenschutzerklärung</h2>
+    <div class="legal-box">
+      <p><b>Keine Server-Datenverarbeitung.</b> Diese Seite ist rein statisch (HTML/CSS/JavaScript) und sendet keine Daten an einen eigenen Server. Es gibt kein Tracking, keine Analyse-Tools und keine Cookies von dieser Seite selbst.</p>
+      <p><b>Lokaler Speicher (localStorage).</b> Deine ⭐ Favoriten und die Farbschema-Einstellung werden ausschließlich lokal in deinem eigenen Browser gespeichert (localStorage) und niemals an irgendjemanden übertragen. Du kannst diese Daten jederzeit über die Browser-Einstellungen löschen.</p>
+      <p><b>Externe Links.</b> Die „Live-Chart“- und News-Links führen zu Drittanbietern (u. a. Google Finance, Yahoo Finance, Tagesschau, Handelsblatt). Sobald du einen solchen Link anklickst, gilt die Datenschutzerklärung des jeweiligen Anbieters &mdash; darauf hat diese Seite keinen Einfluss.</p>
+      <p class="placeholder">[Falls du selbst Werbung, Analyse-Tools oder Cookies einbindest, muss diese Datenschutzerklärung entsprechend ergänzt werden, z. B. um Angaben zu Google AdSense, Consent-Bannern und Widerrufsmöglichkeiten.]</p>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div><b>Was ist das hier?</b> Eine kuratierte Sammlung schneller Links zu Live-Kursen &mdash; keine eingebauten Kurszahlen (damit hier nichts veraltet), sondern ein Klick zur jeweils aktuellen Quelle.</div>
+    <div style="margin-top:6px;">Der Börsenstatus wird direkt im Browser aus der Uhrzeit berechnet (ohne Feiertage) &mdash; keine Order-, Kauf- oder Verkaufsfunktion irgendwo auf dieser Seite.</div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var GROUPS = [
+    {
+      id: "us", title: "🇺🇸 US-Indizes",
+      items: [
+        { id: "sp500", name: "S&P 500", blurb: "500 größte US-Unternehmen – der meistbeachtete US-Leitindex.", link: "https://www.google.com/finance/quote/.INX:INDEXSP" },
+        { id: "nasdaq100", name: "Nasdaq 100", blurb: "100 größte Nicht-Finanzwerte der Nasdaq, technologielastig.", link: "https://www.google.com/finance/quote/NDX:INDEXNASDAQ" },
+        { id: "dow", name: "Dow Jones", blurb: "30 US-Schwergewichte, ältester noch aktiver US-Index.", link: "https://www.google.com/finance/quote/.DJI:INDEXDJX" },
+        { id: "russell2000", name: "Russell 2000", blurb: "2000 kleinere US-Unternehmen (Small Caps).", link: "https://www.google.com/finance/quote/RUT:INDEXRUSSELL" }
+      ]
+    },
+    {
+      id: "europa", title: "🇪🇺 Europa-Indizes",
+      items: [
+        { id: "dax", name: "DAX", blurb: "40 größte deutsche Unternehmen, deutscher Leitindex.", link: "https://www.google.com/finance/quote/DAX:INDEXDB" },
+        { id: "mdax", name: "MDAX", blurb: "50 mittelgroße deutsche Unternehmen, unterhalb des DAX.", link: "https://www.google.com/finance/quote/MDAX:INDEXDB" },
+        { id: "stoxx50", name: "EURO STOXX 50", blurb: "50 größte Unternehmen der Eurozone.", link: "https://www.google.com/finance/quote/SX5E:INDEXSTOXX" },
+        { id: "ftse100", name: "FTSE 100", blurb: "100 größte an der Londoner Börse gelistete Unternehmen.", link: "https://uk.finance.yahoo.com/quote/%5EFTSE/" }
+      ]
+    },
+    {
+      id: "asien", title: "🌏 Asien-Indizes",
+      items: [
+        { id: "nikkei225", name: "Nikkei 225", blurb: "225 führende japanische Unternehmen an der Börse Tokio.", link: "https://www.google.com/finance/quote/NI225:INDEXNIKKEI" },
+        { id: "hangseng", name: "Hang Seng", blurb: "Leitindex der Börse Hongkong.", link: "https://www.google.com/finance/quote/HSI:INDEXHANGSENG" }
+      ]
+    },
+    {
+      id: "aktien", title: "⭐ Beliebte Einzelaktien",
+      items: [
+        { id: "aapl", name: "Apple", blurb: "US-Technologiekonzern (iPhone, Mac, Services).", link: "https://www.google.com/finance/quote/AAPL:NASDAQ" },
+        { id: "msft", name: "Microsoft", blurb: "US-Softwarekonzern (Windows, Azure, Office).", link: "https://www.google.com/finance/quote/MSFT:NASDAQ" },
+        { id: "nvda", name: "Nvidia", blurb: "US-Chiphersteller, zentral im KI-Boom.", link: "https://www.google.com/finance/quote/NVDA:NASDAQ" },
+        { id: "tsla", name: "Tesla", blurb: "US-Elektroauto- und Energiekonzern.", link: "https://www.google.com/finance/quote/TSLA:NASDAQ" },
+        { id: "sap", name: "SAP", blurb: "Größter deutscher Softwarekonzern.", link: "https://www.google.com/finance/quote/SAP:ETR" },
+        { id: "siemens", name: "Siemens", blurb: "Deutscher Industrie- und Technologiekonzern.", link: "https://www.google.com/finance/quote/SIE:ETR" },
+        { id: "vw", name: "Volkswagen", blurb: "Deutscher Automobilkonzern.", link: "https://www.google.com/finance/quote/VOW:ETR" }
+      ]
+    },
+    {
+      id: "devisen", title: "💱 Devisen",
+      items: [
+        { id: "eurusd", name: "EUR / USD", blurb: "Wechselkurs Euro zu US-Dollar, meistgehandeltes Währungspaar.", link: "https://www.google.com/finance/quote/EUR-USD" },
+        { id: "gbpusd", name: "GBP / USD", blurb: "Wechselkurs britisches Pfund zu US-Dollar.", link: "https://www.google.com/finance/quote/GBP-USD" },
+        { id: "usdjpy", name: "USD / JPY", blurb: "Wechselkurs US-Dollar zu japanischem Yen.", link: "https://www.google.com/finance/quote/USD-JPY" }
+      ]
+    },
+    {
+      id: "rohstoffe", title: "🪙 Rohstoffe & Krypto",
+      items: [
+        { id: "gold", name: "Gold", blurb: "Feinunze Gold in US-Dollar, klassischer „sicherer Hafen“.", link: "https://finance.yahoo.com/quote/GC=F/" },
+        { id: "silber", name: "Silber", blurb: "Feinunze Silber in US-Dollar, Industrie- und Edelmetall.", link: "https://finance.yahoo.com/quote/SI=F/futures/" },
+        { id: "oel", name: "Öl (WTI)", blurb: "US-Rohöl-Future, wichtiger Konjunktur- und Inflationsindikator.", link: "https://finance.yahoo.com/quote/CL=F/" },
+        { id: "bitcoin", name: "Bitcoin", blurb: "Größte Kryptowährung nach Marktkapitalisierung.", link: "https://finance.yahoo.com/quote/BTC-USD/" }
+      ]
+    }
+  ];
+
+  var GLOSSARY = [
+    { term: "Kurs", def: "Der aktuelle Preis, zu dem ein Wertpapier oder Index gerade gehandelt wird." },
+    { term: "Index", def: "Ein Korb ausgewählter Wertpapiere (z. B. S&P 500), dessen Gesamtwertentwicklung die Marktstimmung eines Segments zusammenfasst." },
+    { term: "Marktkapitalisierung", def: "Aktueller Aktienkurs multipliziert mit der Anzahl aller ausgegebenen Aktien – der 'Börsenwert' eines Unternehmens." },
+    { term: "Dividende", def: "Ausschüttung eines Teils des Unternehmensgewinns an die Aktionäre, meist jährlich." },
+    { term: "Volatilität", def: "Maß dafür, wie stark ein Kurs in einem Zeitraum schwankt – hohe Volatilität bedeutet größere, schnellere Ausschläge." },
+    { term: "Bullen- / Bärenmarkt", def: "'Bullenmarkt' = anhaltend steigende Kurse, 'Bärenmarkt' = anhaltend fallende Kurse (oft ab -20 % vom Hoch)." },
+    { term: "ETF", def: "Exchange Traded Fund – ein Fonds, der meist einen Index nachbildet und wie eine Aktie an der Börse gehandelt wird." },
+    { term: "Blue Chip", def: "Bezeichnung für große, etablierte, häufig im Leitindex vertretene Unternehmen mit hoher Marktkapitalisierung." }
+  ];
+
+  var NEWS = [
+    { name: "Tagesschau – Wirtschaft", link: "https://www.tagesschau.de/wirtschaft/" },
+    { name: "Handelsblatt – Finanzen", link: "https://www.handelsblatt.com/finanzen/" },
+    { name: "Google Finance – Marktübersicht", link: "https://www.google.com/finance/markets/indexes" },
+    { name: "Yahoo Finance – News", link: "https://finance.yahoo.com/news/" }
+  ];
+
+  var ALL_ITEMS = {};
+  GROUPS.forEach(function (g) { g.items.forEach(function (it) { ALL_ITEMS[it.id] = it; }); });
+
+  var FAV_KEY = "marktkompass:favorites";
+  function loadFavs() {
+    try { var raw = localStorage.getItem(FAV_KEY); return raw ? JSON.parse(raw) : []; }
+    catch (e) { return []; }
+  }
+  function saveFavs(favs) { try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); } catch (e) {} }
+  var favorites = loadFavs();
+
+  function isFav(id) { return favorites.indexOf(id) !== -1; }
+  function toggleFav(id) {
+    var idx = favorites.indexOf(id);
+    if (idx === -1) favorites.push(id); else favorites.splice(idx, 1);
+    saveFavs(favorites);
+    renderAll();
+  }
+
+  function makeCard(item) {
+    var card = document.createElement("div");
+    card.className = "card";
+    var star = document.createElement("button");
+    star.className = "star-btn" + (isFav(item.id) ? " active" : "");
+    star.type = "button";
+    star.setAttribute("aria-label", "Favorit umschalten: " + item.name);
+    star.textContent = isFav(item.id) ? "★" : "☆";
+    star.addEventListener("click", function () { toggleFav(item.id); });
+
+    var top = document.createElement("div");
+    top.className = "card-top";
+    var name = document.createElement("div");
+    name.className = "card-name";
+    name.textContent = item.name;
+    top.appendChild(name);
+    top.appendChild(star);
+
+    var blurb = document.createElement("div");
+    blurb.className = "card-blurb";
+    blurb.textContent = item.blurb;
+
+    var link = document.createElement("a");
+    link.className = "card-link";
+    link.href = item.link;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "Live-Chart ↗";
+
+    card.appendChild(top);
+    card.appendChild(blurb);
+    card.appendChild(link);
+    return card;
+  }
+
+  function renderAll() {
+    var favSection = document.getElementById("favoriten");
+    var favGrid = document.getElementById("favGrid");
+    favGrid.innerHTML = "";
+    if (favorites.length) {
+      favorites.forEach(function (id) { if (ALL_ITEMS[id]) favGrid.appendChild(makeCard(ALL_ITEMS[id])); });
+      favSection.style.display = "";
+    } else {
+      favSection.style.display = "none";
+    }
+
+    var groupsEl = document.getElementById("groups");
+    groupsEl.innerHTML = "";
+    GROUPS.forEach(function (g) {
+      var section = document.createElement("section");
+      section.id = g.id;
+      var title = document.createElement("h2");
+      title.className = "section-title";
+      title.textContent = g.title;
+      var grid = document.createElement("div");
+      grid.className = "grid";
+      g.items.forEach(function (item) { grid.appendChild(makeCard(item)); });
+      section.appendChild(title);
+      section.appendChild(grid);
+      groupsEl.appendChild(section);
+    });
+  }
+
+  function renderGlossary() {
+    var list = document.getElementById("glossaryList");
+    list.innerHTML = "";
+    GLOSSARY.forEach(function (g) {
+      var box = document.createElement("div");
+      box.className = "gterm";
+      var dt = document.createElement("dt");
+      dt.textContent = g.term;
+      var dd = document.createElement("dd");
+      dd.textContent = g.def;
+      box.appendChild(dt);
+      box.appendChild(dd);
+      list.appendChild(box);
+    });
+  }
+
+  function renderNews() {
+    var list = document.getElementById("newsList");
+    list.innerHTML = "";
+    NEWS.forEach(function (n) {
+      var a = document.createElement("a");
+      a.href = n.link;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.innerHTML = "<span>" + n.name + "</span><span class=\"arrow\">↗</span>";
+      list.appendChild(a);
+    });
+  }
+
+  renderAll();
+  renderGlossary();
+  renderNews();
+
+  // Search
+  document.getElementById("searchBtn").addEventListener("click", runSearch);
+  document.getElementById("searchInput").addEventListener("keydown", function (e) { if (e.key === "Enter") runSearch(); });
+  function runSearch() {
+    var q = document.getElementById("searchInput").value.trim();
+    if (!q) return;
+    window.open("https://www.google.com/search?q=" + encodeURIComponent(q + " kurs aktie"), "_blank", "noopener");
+  }
+
+  // Theme toggle: cycles system -> light -> dark -> system
+  var THEME_KEY = "marktkompass:theme";
+  function loadTheme() { try { return localStorage.getItem(THEME_KEY) || "system"; } catch (e) { return "system"; } }
+  function saveTheme(t) { try { localStorage.setItem(THEME_KEY, t); } catch (e) {} }
+  function applyTheme(t) {
+    if (t === "system") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", t);
+  }
+  var theme = loadTheme();
+  applyTheme(theme);
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    theme = theme === "system" ? "light" : theme === "light" ? "dark" : "system";
+    saveTheme(theme);
+    applyTheme(theme);
+  });
+
+  // Market status
+  var WEEKDAY_INDEX = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  function zonedParts(tz) {
+    var fmt = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false });
+    var parts = fmt.formatToParts(new Date());
+    var weekday, hour, minute;
+    parts.forEach(function (p) {
+      if (p.type === "weekday") weekday = p.value;
+      if (p.type === "hour") hour = parseInt(p.value, 10);
+      if (p.type === "minute") minute = parseInt(p.value, 10);
+    });
+    if (hour === 24) hour = 0;
+    return { dayIndex: WEEKDAY_INDEX[weekday], minutes: hour * 60 + minute };
+  }
+  function formatDuration(mins) {
+    mins = Math.max(0, Math.round(mins));
+    var h = Math.floor(mins / 60), m = mins % 60;
+    if (h <= 0) return m + " Min.";
+    return h + "h " + m + "min";
+  }
+  function marketStatus(tz, openMin, closeMin) {
+    var parts = zonedParts(tz);
+    var isTradingDay = parts.dayIndex >= 1 && parts.dayIndex <= 5;
+    var isOpen = isTradingDay && parts.minutes >= openMin && parts.minutes < closeMin;
+    if (isOpen) return { isOpen: true, note: "schließt in " + formatDuration(closeMin - parts.minutes) };
+    for (var d = 0; d <= 7; d++) {
+      var dayIndex = (parts.dayIndex + d) % 7;
+      if (dayIndex >= 1 && dayIndex <= 5) {
+        var candidate = d * 1440 + openMin;
+        if (candidate > parts.minutes) return { isOpen: false, note: "öffnet in " + formatDuration(candidate - parts.minutes) };
+      }
+    }
+    return { isOpen: false, note: "aktuell geschlossen" };
+  }
+  var MARKETS = [
+    { name: "US-Börsen (NYSE / Nasdaq)", tz: "America/New_York", open: 9 * 60 + 30, close: 16 * 60 },
+    { name: "Europa-Börsen (Xetra)", tz: "Europe/Berlin", open: 9 * 60, close: 17 * 60 + 30 },
+    { name: "Tokio (Nikkei)", tz: "Asia/Tokyo", open: 9 * 60, close: 15 * 60 },
+    { name: "Hongkong (Hang Seng)", tz: "Asia/Hong_Kong", open: 9 * 60 + 30, close: 16 * 60 }
+  ];
+  function renderStatus() {
+    var row = document.getElementById("statusRow");
+    row.innerHTML = "";
+    MARKETS.forEach(function (m) {
+      var s = marketStatus(m.tz, m.open, m.close);
+      var pill = document.createElement("div");
+      pill.className = "status-pill";
+      var dot = document.createElement("div");
+      dot.className = "status-dot " + (s.isOpen ? "open" : "closed");
+      var text = document.createElement("div");
+      text.className = "status-text";
+      text.innerHTML = "<b>" + m.name + "</b><span>" + (s.isOpen ? "Geöffnet – " : "Geschlossen – ") + s.note + "</span>";
+      pill.appendChild(dot);
+      pill.appendChild(text);
+      row.appendChild(pill);
+    });
+  }
+  renderStatus();
+  setInterval(renderStatus, 30000);
+})();
+</script>
